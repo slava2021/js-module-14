@@ -11,6 +11,9 @@
 <body>
     <input class="input-data" type="text" placeholder="Введите любое число" value="">
     <input class="input-btn" type="button" value="SEND">
+    <br>
+    <br>
+    <span>Результат запроса</span>
     <hr>
     <div class="gallery"></div>
 
@@ -36,7 +39,10 @@
                     } else {
                         const result = JSON.parse(xhr.response);
                         if (callback) {
-                            callback(result);
+
+                            let msg = xhr.status == 200 ? "Ответ от сервера получен" : "";
+                            resultNode.innerText = msg;
+                            setTimeout(callback, 1000, result);
                         }
                     }
                 };

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <span>Введите первое и второе число в диапазоне от 100 до 300</span>
+    <hr>
+    <input class="f-value" type="text" placeholder="Введите первое число">
+    <input class="s-value" type="text" placeholder="Введите второе число">
+    <input class="button" type="submit" value="Отправить">
+    <hr>
+    <span>Результат:</span>
+    <div class="gallery"></div>
+    <script>
+        const btn = document.querySelector('.button')
+        const numbers = +document.querySelector('.f-value').value;
+        const gallery = document.querySelector('.gallery');
+
+
+        function isNumber(value) {
+            if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                return true
+            } else {
+                return false
+            }
+        }
+
+        Number.prototype.isBetween = function (a, b) {
+            return a <= this && this <= b;
+        };
+
+
+        btn.addEventListener('click', () => {
+            const firstValue = document.querySelector('.f-value').value;
+            const secondValue = document.querySelector('.s-value').value;
+
+            if (isNumber(firstValue) && isNumber(secondValue)) {
+
+                //Не понимаю почему в данной функции приходиться повторно преобразовывать значение в число, ставить + 
+                //Не могли бы вы это прокомментировать?
+                const range1 = (+firstValue).isBetween(100, 300);
+                const range2 = (+secondValue).isBetween(100, 300);
+
+                if (range1 && range2) {
+
+                    const reqUrl = `https://dummyimage.com/${firstValue}x${secondValue}/`
+
+                    fetch(reqUrl)
+                        .then(response => response)
+                        .then(data => {
+                            gallery.innerHTML = `<img src="${data.url}">`
+                        })
+                        .catch(() => {
+                            gallery.innerHTML = '<font color=red>Произошла ошибка</a>'
+                        });
+                } else {
+                    return console.log('error1')
+                }
+            } else {
+                return console.log('error2')
+            }
+        });
+    </script>
+</body>
+
+</html>
