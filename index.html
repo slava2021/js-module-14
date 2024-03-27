@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <form id="myForm">
+        <label for="firstInpt">Номер страницы</label><br>
+        <input class="text" type="text" name="pageNum" value="3" id="firstInpt"><br><br>
+        <label for="secondInput">Лимит</label><br>
+        <input class="text" type="text" name="limitData" value="2" id="secondInput"><br><br>
+        <input type="submit" name="submit" class="button" value="Запрос">
+    </form>
+    <hr>
+    <span>Результат</span>
+    <div class="gallery"></div>
+    <script>
+        const btn = document.querySelector('.button');
+        const gallery = document.querySelector('.gallery');
+
+        const myForm = document.getElementById('myForm');
+
+
+
+        // Проверяем введено число или нет
+        function isNumber(value) {
+            if (!isNaN(parseFloat(value)) && isFinite(value)) {
+                return true
+            } else {
+                return false
+            }
+        }
+
+        // Проверяем входит ли число в заданный интервал
+        Number.prototype.isBetween = function (a, b) {
+            return a <= this && this <= b;
+        };
+
+        // Функция вывода ошибок по коду
+        function errMessages(errorType) {
+            const errObj = {
+                error1: '<font color="red">Номер страницы вне диапазона от 1 до 10</font>',
+                error2: '<font color="red">Лимит вне диапазона от 1 до 10</font>',
+                error3: '<font color="red">Номер страницы и лимит вне диапазона от 1 до 10</font>'
+
+            }
+
+
+            if (errorType == 'f-input') {
+                gallery.innerHTML = errObj.error1;
+            }
+
+            if (errorType == 's-input') {
+                gallery.innerHTML = errObj.error2;
+            }
+
+            if (errorType == 'all') {
+                gallery.innerHTML = errObj.error3;
+            }
+        }
+
+        // Функция проверки данных принятых из формы
+        function checkInputData(inpName, value) {
+
+            if (isNumber(value)) {
+                if ((+value).isBetween(1, 10)) {
+                    return true
+                } else {
+                    errMessages(inpName);
+                    return false;
+                }
+            } else {
+                errMessages(inpName);
+                return false;
+            }
+        }
+
+        // Создаем пустой объект со свойствами
+        let InpDataObj = {
+            pages: {
+                result: "",
+                value: ""
+
+            },
+            limit: {
+                result: "",
+                value: ""
+            }
+        }
+
+        // Получаем значения введеные в Input или выводим сообщение об ошибке
+        function getValues() {
+            const data = new FormData(myForm)
+            // console.log(data)
+            let arrCheck = [];
+
+            for (let [name, value] of data) {
+                arrCheck.push(checkInputData(name, value));
+                //arrCheck.push(value);
+                if (name == "pageNum") {
+                    InpDataObj.pages.result = checkInputData(name, value)
+                    InpDataObj.pages.value = value
+                }
+                if (name == "limitData") {
+                    InpDataObj.limit.result = checkInputData(name, value)
+                    InpDataObj.limit.value = value
+                }
+            }
+
+            if (InpDataObj.pages.result === false && InpDataObj.limit.result === false) {
+                return errMessages('all');
+            }
+        }
+
+        function createImages(objData) {
+            //console.log("data", data);
+            objData.forEach(function (data, index) {
+                gallery.innerHTML += `<img src="${data.url}">`;
+            });
+        }
+
+        function useLocalStorage() {
+            const myJSON = localStorage.getItem('myJSON');
+
+            if (myJSON) {
+                const data = JSON.parse(myJSON);
+                // Если данные в localStorage есть - просто выводим их
+                console.log('localStorage JSON', JSON.parse(myJSON));
+                createImages(data);
+            }
+        }
+
+        function useRequest(url) {
+            fetch(url)
+                .then((response) => {
+                    const result = response.json();
+                    //console.log('result', result);
+                    return result;
+                })
+                .then(data => {
+                    gallery.innerHTML = "";
+                    // console.log(data);
+                    localStorage.setItem('myJSON', JSON.stringify(data));
+                    createImages(data);
+                })
+                .catch(() => {
+                    gallery.innerHTML = '<font color=red>Произошла ошибка</a>'
+                });
+        }
+
+        // Вешаем событие на кнопку отправки формы
+        myForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            localStorage.removeItem('myJSON');
+
+            getValues();
+
+            let pageNum = InpDataObj.pages.value;
+            let limitData = InpDataObj.limit.value;
+
+            const reqUrl = `https://jsonplaceholder.typicode.com/photos?_page=${pageNum}&_limit=${limitData}`;
+
+            useRequest(reqUrl);
+
+        });
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            useLocalStorage();
+        });
+
+    </script>
+
+</body>
+
+</html>
